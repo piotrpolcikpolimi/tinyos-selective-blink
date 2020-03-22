@@ -39,7 +39,7 @@ implementation {
 
     void retryOrTimeout() {
         retryCounter++;
-        if (retryCounter < 100) {
+        if (retryCounter < RADIO_START_TIMEOUT_LIMIT) {
             // retry starting
             call AMControl.start();
         } else {

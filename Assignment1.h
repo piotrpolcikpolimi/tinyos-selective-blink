@@ -11,7 +11,8 @@ enum {
     MOTE_1_FREQ = 1000,
     MOTE_2_FREQ = 333,
     MOTE_3_FREQ = 200,
-    DEFAULT_FREQ = 1000
+    DEFAULT_FREQ = 1000,
+    RADIO_START_TIMEOUT_LIMIT = 100
 };
 
 #endif
