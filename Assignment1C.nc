@@ -38,31 +38,33 @@ implementation {
         return pck;
     }
 
-    // booting, initializing the readio
+    void retryOrTimeout() {
+        retryCounter++;
+        if (retryCounter < 100) {
+            // retry starting
+            call AMControl.start();
+        } else {
+            // retry limit reached, timeout
+            call AMControl.stop();
+        }
+    }
+
+    // booting, initializing the radio
     event void Boot.booted() {
         call AMControl.start();
     }
 
-    // check if readio booted succesfully. 
+    // check if radio started succesfully. 
     event void AMControl.startDone(error_t err) {
         if (err == SUCCESS) {
             // radio booted. Start timer.
             call MTimer.startPeriodic(getNodeFrequency(TOS_NODE_ID));
         } else {
-            retryCounter++;
-            if (retryCounter > 100) {
-                // retry booting
-                call AMControl.start();
-            } else {
-                // abort
-                call AMControl.stop();
-            }
-            
+            retryOrTimeout();
         }
     }
 
-    event void AMControl.stopDone(error_t err) {
-    }
+    event void AMControl.stopDone(error_t err) { }
 
     event void MTimer.fired() {
         if (locked) {
