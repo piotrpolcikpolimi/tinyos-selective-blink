@@ -32,7 +32,7 @@ implementation {
     message_t* setPayload(message_t* pck) {
         msg_template_t* msg = (msg_template_t*)call Packet.getPayload(pck, sizeof(msg_template_t));
         msg->counter = counter;
-        msg->node_id = TOS_NODE_ID;
+        msg->sender_id = TOS_NODE_ID;
 
         return pck;
     }
@@ -97,7 +97,7 @@ implementation {
             if (msg->counter % 10 == 0) {
                 turnOfAll();
             } else {
-                switch(msg->node_id) {
+                switch(msg->sender_id) {
                     case 1: 
                         call Leds.led0Toggle();
                         break;

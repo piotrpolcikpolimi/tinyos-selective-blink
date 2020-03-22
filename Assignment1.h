@@ -3,7 +3,7 @@
 
 typedef nx_struct msg_template_t {
     nx_uint16_t counter;
-    nx_uint8_t node_id;
+    nx_uint8_t sender_id;
 } msg_template_t;
 
 enum {

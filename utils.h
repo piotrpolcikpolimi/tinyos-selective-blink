@@ -1,6 +1,6 @@
 #include "Assignment1.h"
 
-uint16_t getNodeFrequency(int node_id) { 
+uint16_t getNodeFrequency(int sender_id) { 
     uint16_t timer;
 
     switch (TOS_NODE_ID)
