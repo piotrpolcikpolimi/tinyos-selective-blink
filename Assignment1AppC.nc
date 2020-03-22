@@ -1,6 +1,5 @@
 #define NEW_PRINTF_SEMANTICS
 #include "Assignment1.h"
-#include "printf.h"
 
 
 configuration Assignment1AppC {}

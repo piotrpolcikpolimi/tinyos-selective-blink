@@ -1,6 +1,5 @@
 #include "Timer.h"
 #include "Assignment1.h"
-#include "printf.h"
 #include "utils.h"
 
 module Assignment1C @safe() {
