@@ -29,7 +29,7 @@ implementation {
         call Leds.led2Off();
     }
 
-    &message_t setPayload(&message_t pck) {
+    message_t* setPayload(message_t* pck) {
         msg_template_t* msg = (msg_template_t*)call Packet.getPayload(pck, sizeof(msg_template_t));
         msg->counter = counter;
         msg->node_id = TOS_NODE_ID;
@@ -68,8 +68,7 @@ implementation {
         if (locked) {
             return;
         } else {
-            packet = setPayload(&packet);
-            if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(msg_template_t)) == SUCCESS) {
+            if (call AMSend.send(AM_BROADCAST_ADDR, setPayload(&packet), sizeof(msg_template_t)) == SUCCESS) {
                 locked = TRUE;
             }
         }

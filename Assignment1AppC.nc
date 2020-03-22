@@ -21,7 +21,7 @@ implementation {
     App.Packet -> Sender;
     App.Receive -> Receiver;
     App.AMControl -> ActiveMessageC;
-    App.MilliTimer -> Timer;
+    App.MTimer -> Timer;
 
     App.Leds -> LedsC;
 }
