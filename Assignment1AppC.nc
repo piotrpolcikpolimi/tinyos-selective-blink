@@ -5,22 +5,26 @@
 
 configuration Assignment1AppC {}
 implementation {
-  components MainC, Assignment1C as App, LedsC;
-  components new AMSenderC(AM_RADIO_COUNT_MSG);
-  components new AMReceiverC(AM_RADIO_COUNT_MSG);
-  components new TimerMilliC();
-  components PrintfC;
-  components SerialStartC;
-  components ActiveMessageC;
+  components MainC, LedsC, ActiveMessageC;
   
-  App.Boot -> MainC.Boot;
+  components new AMSenderC(AM_ID) as Sender;
+  components new AMReceiverC(AM_ID) as Receiver;
+  components new TimerMilliC() as Timer;
+
+  components Assignment1C as App;
+
+  // linking 
+
+  App.Boot -> MainC;
   
-  App.Receive -> AMReceiverC;
-  App.AMSend -> AMSenderC;
+  App.AMSend -> Sender;
+  App.Packet -> Sender;
+  App.Receive -> Receiver;
   App.AMControl -> ActiveMessageC;
+  App.MilliTimer -> Timer;
+
   App.Leds -> LedsC;
-  App.MilliTimer -> TimerMilliC;
-  App.Packet -> AMSenderC;
+  
 }
 
 

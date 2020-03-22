@@ -1,19 +1,21 @@
+#include "Assignment1.h"
+
 uint16_t getNodeFrequency(int node_id) { 
     uint16_t timer;
 
     switch (TOS_NODE_ID)
   	{
   	    case 1:
-  	        timer = 1000;
+  	        timer = MOTE_1_FREQ;
   	        break;
   	    case 2:
-  	        timer = 333;
+  	        timer = MOTE_2_FREQ;
   	        break;
   	    case 3:
-  	        timer = 200;
+  	        timer = MOTE_3_FREQ;
   	        break;
   	    default:
-  	        timer = 1000;
+  	        timer = DEFAULT_FREQ;
   	}
   	
   	return timer;

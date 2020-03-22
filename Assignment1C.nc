@@ -49,7 +49,7 @@ implementation {
     if (locked) {
       return;
     } else {
-      radio_count_msg_t* rcm = (radio_count_msg_t*)call Packet.getPayload(&packet, sizeof(radio_count_msg_t));
+      msg_template_t* rcm = (msg_template_t*)call Packet.getPayload(&packet, sizeof(msg_template_t));
   
       if (rcm == NULL) {
 	    return;
@@ -58,7 +58,7 @@ implementation {
       rcm->counter = counter;
       rcm->node_id = TOS_NODE_ID;
  
-      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(radio_count_msg_t)) == SUCCESS) {
+      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(msg_template_t)) == SUCCESS) {
 	    locked = TRUE;
       }
     }
@@ -66,10 +66,10 @@ implementation {
 
   event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
     counter++;
-    if (len != sizeof(radio_count_msg_t)) {
+    if (len != sizeof(msg_template_t)) {
         return bufPtr;
     } else {
-        radio_count_msg_t* rcm = (radio_count_msg_t*)payload;
+        msg_template_t* rcm = (msg_template_t*)payload;
 
         if (rcm->counter % 10 == 0) {
             turnOfAll();
