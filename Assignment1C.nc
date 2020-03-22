@@ -29,6 +29,7 @@ implementation {
         call Leds.led2Off();
     }
 
+    // set message payload
     message_t* setPayload(message_t* pck) {
         msg_template_t* msg = (msg_template_t*)call Packet.getPayload(pck, sizeof(msg_template_t));
         msg->counter = counter;
@@ -61,24 +62,35 @@ implementation {
     }
 
     event void AMControl.stopDone(error_t err) {
-        // do nothing
     }
 
     event void MTimer.fired() {
         if (locked) {
             return;
         } else {
+            // Radio not busy. Get payload and send message
             if (call AMSend.send(AM_BROADCAST_ADDR, setPayload(&packet), sizeof(msg_template_t)) == SUCCESS) {
                 locked = TRUE;
             }
         }
     }
 
+    // message send. Clear the radio lock
+    event void AMSend.sendDone(message_t* bufPtr, error_t error) {
+        if (&packet == bufPtr) {
+            locked = FALSE;
+        }
+    }
+
     event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
+        // message received. Increase the counter
         counter++;
+
+        // check message correctness
         if (len != sizeof(msg_template_t)) {
             return bufPtr;
         } else {
+            // cast the message payload to the known template
             msg_template_t* msg = (msg_template_t*)payload;
 
             if (msg->counter % 10 == 0) {
@@ -97,11 +109,6 @@ implementation {
                 }
             }
             return bufPtr;
-        }
-    }
-    event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-        if (&packet == bufPtr) {
-        locked = FALSE;
         }
     }
 }
