@@ -9,98 +9,100 @@ module Assignment1C @safe() {
     interface Boot;
     interface Receive;
     interface AMSend;
-    interface Timer<TMilli> as MilliTimer;
+    interface Timer<TMilli> as MTimer;
     interface SplitControl as AMControl;
     interface Packet;
   }
 }
 implementation {
 
-  message_t packet;
+    message_t packet;
 
-  bool locked;
-  uint16_t counter = 0;
-  
-  void turnOfAll() {
-    call Leds.led0Off();
-    call Leds.led1Off();
-    call Leds.led2Off();
-  }
-  
-  event void Boot.booted() {
-    call AMControl.start();
-  }
+    bool locked;
+    uint16_t counter = 0;
+    uint16_t retryCounter = 0;
 
-  event void AMControl.startDone(error_t err) {
-
-    if (err == SUCCESS) {
-      call MilliTimer.startPeriodic(getNodeFrequency(TOS_NODE_ID));
-    } else {
-      call AMControl.start();
+    // method for turning off all leds
+    void turnOfAll() {
+        call Leds.led0Off();
+        call Leds.led1Off();
+        call Leds.led2Off();
     }
-  }
 
-  event void AMControl.stopDone(error_t err) {
-    // do nothing
-  }
-  
-  event void MilliTimer.fired() {
-  
-    if (locked) {
-      return;
-    } else {
-      msg_template_t* rcm = (msg_template_t*)call Packet.getPayload(&packet, sizeof(msg_template_t));
-  
-      if (rcm == NULL) {
-	    return;
-      }
+    &message_t setPayload(&message_t pck) {
+        msg_template_t* msg = (msg_template_t*)call Packet.getPayload(pck, sizeof(msg_template_t));
+        msg->counter = counter;
+        msg->node_id = TOS_NODE_ID;
 
-      rcm->counter = counter;
-      rcm->node_id = TOS_NODE_ID;
- 
-      if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(msg_template_t)) == SUCCESS) {
-	    locked = TRUE;
-      }
+        return pck;
     }
-  }
 
-  event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
-    counter++;
-    if (len != sizeof(msg_template_t)) {
-        return bufPtr;
-    } else {
-        msg_template_t* rcm = (msg_template_t*)payload;
+    // booting, initializing the readio
+    event void Boot.booted() {
+        call AMControl.start();
+    }
 
-        if (rcm->counter % 10 == 0) {
-            turnOfAll();
+    // check if readio booted succesfully. 
+    event void AMControl.startDone(error_t err) {
+        if (err == SUCCESS) {
+            // radio booted. Start timer.
+            call MTimer.startPeriodic(getNodeFrequency(TOS_NODE_ID));
         } else {
-            switch(rcm->node_id) {
-                case 1: 
-                    call Leds.led0Toggle();
-                    break;
-                case 2:
-                    call Leds.led1Toggle();
-                    break;
-                case 3:
-                    call Leds.led2Toggle();
-                    break;
+            retryCounter++;
+            if (retryCounter > 100) {
+                // retry booting
+                call AMControl.start();
+            } else {
+                // abort
+                call AMControl.stop();
+            }
+            
+        }
+    }
+
+    event void AMControl.stopDone(error_t err) {
+        // do nothing
+    }
+
+    event void MTimer.fired() {
+        if (locked) {
+            return;
+        } else {
+            packet = setPayload(&packet);
+            if (call AMSend.send(AM_BROADCAST_ADDR, &packet, sizeof(msg_template_t)) == SUCCESS) {
+                locked = TRUE;
             }
         }
-
-        
-        return bufPtr;
     }
-    
-  }
 
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    if (&packet == bufPtr) {
-      locked = FALSE;
+    event message_t* Receive.receive(message_t* bufPtr, void* payload, uint8_t len) {
+        counter++;
+        if (len != sizeof(msg_template_t)) {
+            return bufPtr;
+        } else {
+            msg_template_t* msg = (msg_template_t*)payload;
+
+            if (msg->counter % 10 == 0) {
+                turnOfAll();
+            } else {
+                switch(msg->node_id) {
+                    case 1: 
+                        call Leds.led0Toggle();
+                        break;
+                    case 2:
+                        call Leds.led1Toggle();
+                        break;
+                    case 3:
+                        call Leds.led2Toggle();
+                        break;
+                }
+            }
+            return bufPtr;
+        }
     }
-  }
-
+    event void AMSend.sendDone(message_t* bufPtr, error_t error) {
+        if (&packet == bufPtr) {
+        locked = FALSE;
+        }
+    }
 }
-
-
-
-
